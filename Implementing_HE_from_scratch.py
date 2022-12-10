@@ -10,23 +10,23 @@ from numpy.polynomial import polynomial as poly
 # defining functions
 
 
-def polymul(x, y, modulus, polyMod):
-    res = poly.polymul(x, y)
+def poly_multiplication(x, y, modulus, polyMod):
+    res = poly.poly_multiplication(x, y)
     res = poly.polydiv(res % modulus, polyMod)
     res = np.round(res[1] % modulus)
     res = np.int64(res)
     return res
 
 
-def polyadd(x, y, modulus, polyMod):
-    res = poly.polyadd(x, y)
+def poly_addition(x, y, modulus, polyMod):
+    res = poly.poly_addition(x, y)
     res = poly.polydiv(res % modulus, polyMod)
     res = np.round(res[1] % modulus)
     res = np.int64(res)
     return res
 
 
-def keygen(size, modulus, polyMod):
+def keygeneration(size, modulus, polyMod):
     # Generate a public and secret keys
     # Generates a polynomial with coeffecients in range of [0, 1]
     sk = np.random.randint(0, 2, size, dtype=np.int64)
@@ -34,8 +34,8 @@ def keygen(size, modulus, polyMod):
     a = np.random.randint(0, modulus, size, dtype=np.int64)
     # Generates a polynomial with coeffecients in a normal distribution
     e = np.int64(np.random.normal(0, 2, size))
-    t = polymul(-a, sk, modulus, polyMod)
-    b = polyadd(t, -e, modulus, polyMod)
+    t = poly_multiplication(-a, sk, modulus, polyMod)
+    b = poly_addition(t, -e, modulus, polyMod)
     return (b, a), sk
 
 
@@ -50,19 +50,19 @@ def encrypt(pk, size, q, t, polyMod, pt):
     e2 = np.int64(np.random.normal(0, 2, size))
     # Generates a polynomial with coeffecients in [0, 1]
     u = np.random.randint(0, 2, size, dtype=np.int64)
-    polyMulValue = polymul(pk[0], u, q, polyMod)
-    polyAddValue = polyadd(polyMulValue, e1, q, polyMod)
-    ct0 = polyadd(polyAddValue, scaled_m, q, polyMod)
-    polyMulValue2 = polymul(pk[1], u, q, polyMod)
-    ct1 = polyadd(polyMulValue2, e2, q, polyMod)
+    poly_multiplicationValue = poly_multiplication(pk[0], u, q, polyMod)
+    poly_additionValue = poly_addition(poly_multiplicationValue, e1, q, polyMod)
+    ct0 = poly_addition(poly_additionValue, scaled_m, q, polyMod)
+    poly_multiplicationValue2 = poly_multiplication(pk[1], u, q, polyMod)
+    ct1 = poly_addition(poly_multiplicationValue2, e2, q, polyMod)
 
     return (ct0, ct1)
 
 
 def decrypt(sk, size, q, t, polyMod, ct):
     # Decrypt a ciphertext
-    polyMul = polymul(ct[1], sk, q, polyMod)
-    scaled_pt = polyadd(polyMul, ct[0], q, polyMod)
+    poly_multiplication = poly_multiplication(ct[1], sk, q, polyMod)
+    scaled_pt = poly_addition(poly_multiplication, ct[0], q, polyMod)
     decrypted_poly = np.round(scaled_pt * t / q) % t
     res = int(decrypted_poly[0])
     return res
@@ -75,7 +75,7 @@ def addPlain(ct, pt, q, t, polyMod):
     m = np.array([pt] + [0] * (size - 1), dtype=np.int64) % t
     delta = q // t
     scaled_m = delta * m % q
-    new_ct0 = polyadd(ct[0], scaled_m, q, polyMod)
+    new_ct0 = poly_addition(ct[0], scaled_m, q, polyMod)
     res = (new_ct0, ct[1])
     return res
 
@@ -85,8 +85,8 @@ def mulPlain(ct, pt, q, t, polyMod):
     size = len(polyMod) - 1
     # encode the integer into a plaintext polynomial
     m = np.array([pt] + [0] * (size - 1), dtype=np.int64) % t
-    new_c0 = polymul(ct[0], m, q, polyMod)
-    new_c1 = polymul(ct[1], m, q, polyMod)
+    new_c0 = poly_multiplication(ct[0], m, q, polyMod)
+    new_c1 = poly_multiplication(ct[1], m, q, polyMod)
     res = (new_c0, new_c1)
     return res
 
@@ -100,8 +100,8 @@ q = 2**15
 t = 2**8
 # polynomial modulus
 polyMod = np.array([1] + [0] * (n - 1) + [1])
-# Keygen
-publicKey, secretKey = keygen(n, q, polyMod)
+# keygeneration
+publicKey, secretKey = keygeneration(n, q, polyMod)
 # Encryption
 
 
@@ -141,8 +141,3 @@ decrypted_ct4 = decrypt(secretKey, n, q, t, polyMod, ct4)
 
 print("Decrypted ct3(ct1 + {}): {}".format(cst1, decrypted_ct3))
 print("Decrypted ct4(ct2 * {}): {}".format(cst2, decrypted_ct4))
-
-
-# References:
-# 1. https://blog.openmined.org/build-an-homomorphic-encryption-scheme-from-scratch-with-python/
-# 2. https://bit-ml.github.io/blog/post/homomorphic-encryption-toy-implementation-in-python/
