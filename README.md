@@ -1,5 +1,4 @@
 # CISC-870-Project
-## Author: Kazi Amit Hasan
 
 ### Title: A Study on Privacy Preserving Machine Learning with Homomorphic Encryption
 
