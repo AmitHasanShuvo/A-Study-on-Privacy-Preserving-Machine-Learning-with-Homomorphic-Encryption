@@ -141,3 +141,10 @@ decrypted_ct4 = decrypt(secretKey, n, q, t, polyMod, ct4)
 
 print("Decrypted ct3(ct1 + {}): {}".format(cst1, decrypted_ct3))
 print("Decrypted ct4(ct2 * {}): {}".format(cst2, decrypted_ct4))
+
+
+
+
+# References:
+# 1. https://blog.openmined.org/build-an-homomorphic-encryption-scheme-from-scratch-with-python/
+# 2. https://bit-ml.github.io/blog/post/homomorphic-encryption-toy-implementation-in-python/
